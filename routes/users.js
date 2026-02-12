@@ -1,14 +1,12 @@
 const express = require('express');
-const app = express();
-app.listen(1234);
-app.use(express.json());
-
+const router = express.Router();
+router.use(express.json());
 
 console.log("App is running on port 1234.");
 
 
 // 로그인
-app.post("/login", (req, res) => {
+router.post("/login", (req, res) => {
     let {uid} = req.body;
     let {pwd} = req.body;
     let user = db.get(uid);
@@ -27,7 +25,7 @@ app.post("/login", (req, res) => {
 })
 
 // 회원가입
-app.post("/signup", (req, res) => {
+router.post("/signup", (req, res) => {
     let {uid} = req.body;
     let {name} = req.body;
     db.set(uid, req.body);
@@ -43,18 +41,16 @@ app.post("/signup", (req, res) => {
 
 })
 
-app
-    .route("/users/:uid")
+router
+    .route("/users")
     // 회원 정보 개별 조회
     .get((req, res) => {
-        let {uid} = req.params;
+        let {uid} = req.body;
 
         if (db.get(uid)) {
             let name = db.get(uid).name;
 
             res.status(200).json({
-                uid: uid,
-                name: name,
                 message: `uid: ${uid}, name: ${name}`
             })
         }
@@ -81,7 +77,7 @@ app
         }
     })
 
-app.delete("/users/:uid", (req, res) => {
+router.delete("/users/:uid", (req, res) => {
     let {uid} = req.params;
 
     if (db.get(uid)) {
@@ -101,3 +97,5 @@ app.delete("/users/:uid", (req, res) => {
 
 let db = new Map;
 var id = 1;
+
+module.exports = router;

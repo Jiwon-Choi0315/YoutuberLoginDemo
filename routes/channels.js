@@ -1,16 +1,16 @@
 const express = require("express");
-const app = express();
-app.listen(1234);
-app.use(express.json());
+const router = express.Router();
+router.use(express.json());
 
 let db = new Map();
 var id = 1;
 
-app
-    .route("/channels")
+router
+    .route("/")
     .post((req, res) => {
         const {channelTitle} = req.body;
-        db.set(id++, req.body);
+        let channel = req.body;
+        db.set(id++, channel);
 
         if (channelTitle) { 
             res.status(201).json({
@@ -23,22 +23,32 @@ app
         }
     }) // 채널 개별 생성
     .get((req, res) => {
-        if (db.size !== 0) {
-            var channels = [];
+        var {userId} = req.body;
+        var channels = [];
 
+        // userId가 body에 존재하는 경우
+        if (db.size && userId) {
             db.forEach((value, key) => {
-                channels.push(value);
+                if (value.userId == userId) {
+                    channels.push(value);
+                }
             })
 
-            res.json(channels);
+            // 해당 사용자가 소유한 채널이 존재하는 경우
+            if (channels.length) {
+                res.json(channels);
+            }
+            else {
+                channelNotFound();
+            }
         }
         else {
-            res.status(404).json({message: "채널이 존재하지 않습니다."});
+            channelNotFound();
         }
     }) // 채널 전체 조회
 
-app
-    .route("/channels/:id")
+router
+    .route("/:id")
     .put((req, res) => {
         let {id} = req.params;
         id = parseInt(id);
@@ -55,9 +65,7 @@ app
             })
         } 
         else {
-            res.status(404).json({
-                message: "값을 정확히 입력해 주세요."
-            })
+            channelNotFound();
         }
     }) // 채널 개별 수정    
     .delete((req, res) => {
@@ -73,9 +81,7 @@ app
             });
         }
         else {
-            res.status(404).json({
-                message: "해당하는 채널이 없습니다."
-            })
+            channelNotFound();
         }
     }) // 채널 개별 삭제
     .get((req, res) => {
@@ -88,8 +94,14 @@ app
             res.status(200).json(channel);
         }
         else {
-            res.status(404).json({
-                message: "해당하는 채널이 없습니다."
-            })
+            channelNotFound();
         }
     }) // 채널 개별 조회
+
+    function channelNotFound() {
+        res.status(404).json({
+                message: "해당하는 채널이 없습니다."
+            })
+    }
+
+    module.exports = router;
