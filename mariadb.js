@@ -5,7 +5,7 @@ const mysql = require('mysql2');
 const connection = mysql.createConnection({
   host: 'localhost',
   user: 'root',
-  password: 'secret',
+  password: 'root',
   database: 'Youtube',
   dateStrings: true,
 });
