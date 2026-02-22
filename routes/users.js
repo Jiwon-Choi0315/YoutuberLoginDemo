@@ -4,6 +4,13 @@ router.use(express.json());
 const conn = require('../mariadb');
 const { body, param, validationResult } = require("express-validator");
 
+//JWT
+const jwt = require("jsonwebtoken");
+
+//dotenve
+const dotenv = require("dotenv").config();
+
+
 console.log("App is running on port 1234.");
 
 const validate = (req, res, next) => {
@@ -38,9 +45,20 @@ router.post(
                 let user = results[0];
 
                 if (user && password == user.password) {
-                    res.status(200).json({ message: `${user.name}님 환영합니다.` });
+                    // token 발급
+                    const token = jwt.sign({
+                        id: user.id,
+                        email: user.email,
+                        name: user.name
+                    }, process.env.PRIVATE_KEY, {
+                        expiresIn: "1h",
+                        issuer: "I myself"
+                    });
+
+                    res.cookie("token", token, {httpOnly: true});
+                    res.status(200).json({message: `${user.name}님 환영합니다.`});
                 } else {
-                    res.status(404).json({ message: "입력한 정보가 틀렸습니다." });
+                    res.status(403).json({ message: "입력한 정보가 틀렸습니다." });
                 }
             }
         );
